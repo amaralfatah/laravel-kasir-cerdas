@@ -19,9 +19,9 @@ class Product extends Model
         'purchase_price',
         'selling_price',
         'barcode',
-        'product_type',
         'description',
         'images',
+        'is_using_stock',
         'is_active',
     ];
 
@@ -29,6 +29,7 @@ class Product extends Model
         'purchase_price' => 'decimal:2',
         'selling_price' => 'decimal:2',
         'images' => 'array',
+        'is_using_stock' => 'boolean',
         'is_active' => 'boolean',
     ];
 
@@ -65,12 +66,22 @@ class Product extends Model
     // Get stock for a specific shop
     public function getStockForShop($shopId)
     {
+        // Only check stock if this product uses stock
+        if (!$this->is_using_stock) {
+            return null;
+        }
+
         return $this->stocks()->where('shop_id', $shopId)->first()->stock ?? 0;
     }
 
     // Check if product is low on stock for a specific shop
     public function isLowStock($shopId)
     {
+        // Only check for low stock if this product uses stock
+        if (!$this->is_using_stock) {
+            return false;
+        }
+
         $stock = $this->stocks()->where('shop_id', $shopId)->first();
         if (!$stock) return false;
 

@@ -21,9 +21,9 @@ class ProductFactory extends Factory
                 return $attributes['purchase_price'] * (1 + $this->faker->numberBetween(10, 80) / 100);
             },
             'barcode' => $this->faker->unique()->ean13(),
-            'product_type' => $this->faker->randomElement(['goods', 'service']),
             'description' => $this->faker->paragraph(),
             'images' => null,
+            'is_using_stock' => true,
             'is_active' => true,
         ];
     }
@@ -31,14 +31,14 @@ class ProductFactory extends Factory
     public function service(): static
     {
         return $this->state(fn (array $attributes) => [
-            'product_type' => 'service',
+            'is_using_stock' => false,
         ]);
     }
 
     public function goods(): static
     {
         return $this->state(fn (array $attributes) => [
-            'product_type' => 'goods',
+            'is_using_stock' => true,
         ]);
     }
 }

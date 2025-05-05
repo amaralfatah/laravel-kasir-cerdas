@@ -19,9 +19,9 @@ return new class extends Migration
             $table->decimal('purchase_price', 10, 2);
             $table->decimal('selling_price', 10, 2);
             $table->string('barcode', 255)->unique()->nullable();
-            $table->enum('product_type', ['goods', 'service'])->default('goods');
             $table->text('description')->nullable();
             $table->text('images')->nullable()->comment('JSON array of image URLs');
+            $table->boolean('is_using_stock')->default(true);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 

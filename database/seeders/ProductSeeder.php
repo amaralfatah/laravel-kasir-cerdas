@@ -19,15 +19,18 @@ class ProductSeeder extends Seeder
             // Create 3-5 products per subcategory
             $count = rand(3, 5);
 
+            // Determine if this category contains products that use stock
+            $isUsingStock = $category->parent->name !== 'Services';
+
             $products = Product::factory()
                 ->count($count)
                 ->create([
                     'category_id' => $category->id,
-                    'product_type' => $category->parent->name === 'Services' ? 'service' : 'goods',
+                    'is_using_stock' => $isUsingStock,
                 ]);
 
-            // Create stock for each product in each shop (except services)
-            if ($category->parent->name !== 'Services') {
+            // Create stock for each product in each shop (only for products that use stock)
+            if ($isUsingStock) {
                 foreach ($products as $product) {
                     foreach (Shop::all() as $shop) {
                         ProductStock::create([
