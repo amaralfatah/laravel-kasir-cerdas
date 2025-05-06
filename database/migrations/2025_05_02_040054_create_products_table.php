@@ -5,19 +5,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
-    /**
-     * Run the migrations.
-     *
-     * Membuat tabel products untuk menyimpan data produk dalam sistem.
-     * Tabel ini merupakan tabel utama yang memiliki relasi dengan banyak tabel lain seperti:
-     * - product_stocks: untuk menyimpan data stok produk per toko
-     * - product_wholesale_prices: untuk menyimpan harga grosir produk
-     * - transaction_items: untuk mencatat produk yang terjual dalam transaksi
-     * - stock_movements: untuk mencatat pergerakan stok produk
-     * - purchase_order_items: untuk mencatat produk dalam pemesanan pembelian
-     *
-     * @return void
-     */
     public function up(): void
     {
         Schema::create('products', function (Blueprint $table) {

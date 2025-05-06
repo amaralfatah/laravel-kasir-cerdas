@@ -93,56 +93,59 @@ class Product extends Model
     }
 
     /**
-     * Get the wholesale prices for the product.
+     * Get all price rules for this product
      */
-    public function wholesalePrices(): HasMany
+    public function priceRules(): HasMany
     {
-        return $this->hasMany(ProductWholesalePrice::class);
+        return $this->hasMany(ProductPriceRule::class);
     }
 
     /**
-     * Get active wholesale prices for a specific shop.
-     *
-     * @param int|null $shopId
-     * @return \Illuminate\Database\Eloquent\Collection
+     * Mendapatkan semua harga yang tersedia untuk produk ini di toko tertentu
      */
-    public function getActiveWholesalePrices(?int $shopId = null)
+    public function getAvailablePrices($shopId = null)
     {
-        $query = $this->wholesalePrices()->where('is_active', true);
+        $query = $this->priceRules()
+            ->with('priceCategory')
+            ->active()
+            ->current();
 
         if ($shopId) {
-            $query->where(function ($q) use ($shopId) {
-                $q->where('shop_id', $shopId)
-                    ->orWhereNull('shop_id');
-            });
+            $query->forShop($shopId);
         }
 
-        return $query->orderBy('min_quantity')->get();
+        return $query->get()->groupBy('price_category_id');
     }
 
     /**
-     * Get the price for a specific quantity and shop.
-     *
-     * @param int $quantity
-     * @param int|null $shopId
-     * @return float
+     * Memeriksa apakah produk memiliki harga khusus
      */
-    public function getPriceForQuantity(int $quantity, ?int $shopId = null): float
+    public function hasMultiplePriceCategories($shopId = null)
     {
-        // Get shop-specific price first, then fallback to global price
-        $wholesalePrice = $this->wholesalePrices()
-            ->where('is_active', true)
-            ->where('min_quantity', '<=', $quantity)
-            ->where(function ($query) use ($shopId) {
-                if ($shopId) {
-                    $query->where('shop_id', $shopId)
-                        ->orWhereNull('shop_id');
-                }
+        $categoriesCount = $this->priceRules()
+            ->active()
+            ->current()
+            ->when($shopId, function ($query, $shopId) {
+                return $query->forShop($shopId);
             })
-            ->orderBy('min_quantity', 'desc')
-            ->first();
+            ->distinct('price_category_id')
+            ->count('price_category_id');
 
-        // If wholesale price exists, return it; otherwise, return regular selling price
-        return $wholesalePrice ? $wholesalePrice->price : $this->selling_price;
+        return $categoriesCount > 1;
+    }
+
+    /**
+     * Mendapatkan harga berdasarkan kategori harga, jumlah, dan toko
+     */
+    public function getPriceFor($priceCategoryId, $quantity = 1, $shopId = null)
+    {
+        $rule = ProductPriceRule::getApplicablePrice(
+            $this->id,
+            $priceCategoryId,
+            $shopId,
+            $quantity
+        );
+
+        return $rule ? $rule->price : $this->selling_price;
     }
 }

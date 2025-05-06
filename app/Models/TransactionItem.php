@@ -12,6 +12,7 @@ class TransactionItem extends Model
     protected $fillable = [
         'transaction_id',
         'product_id',
+        'price_category_id',
         'quantity',
         'unit_price',
         'purchase_price',
@@ -23,6 +24,7 @@ class TransactionItem extends Model
     public $timestamps = false;
 
     protected $casts = [
+        'quantity' => 'integer',
         'unit_price' => 'decimal:2',
         'purchase_price' => 'decimal:2',
         'discount_amount' => 'decimal:2',
