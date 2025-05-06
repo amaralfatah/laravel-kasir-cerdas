@@ -4,16 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProductStock extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'product_id',
-        'branch_id',
+        'shop_id',
         'stock',
         'min_stock',
+    ];
+
+    protected $casts = [
+        'deleted_at' => 'datetime',
     ];
 
     public function product()
@@ -36,7 +41,7 @@ class ProductStock extends Model
         // Create stock movement record
         StockMovement::create([
             'product_id' => $this->product_id,
-            'branch_id' => $this->branch_id,
+            'shop_id' => $this->shop_id,
             'quantity' => $quantity,
             'movement_type' => $movementType,
             'reference_type' => $referenceType,

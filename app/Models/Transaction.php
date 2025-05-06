@@ -4,16 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Transaction extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'invoice_number',
         'transaction_type',
         'user_id',
-        'branch_id',
+        'shop_id',
         'customer_id',
         'subtotal',
         'discount_amount',
@@ -33,6 +34,7 @@ class Transaction extends Model
         'service_fee' => 'decimal:2',
         'total_amount' => 'decimal:2',
         'transaction_date' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     public function user()
@@ -66,19 +68,19 @@ class Transaction extends Model
     }
 
     // Generate Invoice Number
-    public static function generateInvoiceNumber($branchId)
+    public static function generateInvoiceNumber($shopId)
     {
-        $branch = Branch::find($branchId);
-        $branchCode = substr(strtoupper($branch->name), 0, 3);
+        $shop = Shop::find($shopId);
+        $shopCode = substr(strtoupper($shop->name), 0, 3);
         $date = now()->format('Ymd');
 
-        $latestInvoice = self::where('invoice_number', 'like', $branchCode . '-' . $date . '%')
+        $latestInvoice = self::where('invoice_number', 'like', $shopCode . '-' . $date . '%')
             ->latest()
             ->first();
 
         $sequence = $latestInvoice ? intval(substr($latestInvoice->invoice_number, -4)) + 1 : 1;
 
-        return $branchCode . '-' . $date . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        return $shopCode . '-' . $date . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
     }
 
     // Calculate total paid

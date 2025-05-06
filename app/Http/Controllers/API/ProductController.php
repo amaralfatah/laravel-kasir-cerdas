@@ -15,8 +15,6 @@ class ProductController extends Controller
         try {
             // Mulai query builder produk
             $productsQuery = Product::query();
-
-            // Cek role user
             $user = $request->user();
 
             // Filter produk berdasarkan role user
@@ -26,20 +24,21 @@ class ProductController extends Controller
                 // Owner hanya dapat melihat produk dari toko yang dimilikinya
                 $ownedShopIds = ShopOwner::where('user_id', $user->id)->pluck('shop_id')->toArray();
 
-                $productsQuery->whereHas('stocks', function($query) use ($ownedShopIds) {
-                    $query->whereIn('shop_id', $ownedShopIds);
+                // Filter berdasarkan stocks
+                $productsQuery->whereHas('stocks', function ($q) use ($ownedShopIds) {
+                    $q->whereIn('shop_id', $ownedShopIds);
                 });
             } else {
                 // Admin, manager, cashier hanya dapat melihat produk dari toko mereka
-                $productsQuery->whereHas('stocks', function($query) use ($user) {
-                    $query->where('shop_id', $user->shop_id);
+                $productsQuery->whereHas('stocks', function ($q) use ($user) {
+                    $q->where('shop_id', $user->shop_id);
                 });
             }
 
             // Apply search filter jika disediakan
             if ($request->has('search')) {
                 $searchTerm = $request->input('search');
-                $productsQuery->where(function($query) use ($searchTerm) {
+                $productsQuery->where(function ($query) use ($searchTerm) {
                     $query->where('name', 'like', "%{$searchTerm}%")
                         ->orWhere('barcode', 'like', "%{$searchTerm}%")
                         ->orWhere('sku', 'like', "%{$searchTerm}%");
@@ -54,6 +53,11 @@ class ProductController extends Controller
             // Filter berdasarkan status aktif
             if ($request->has('is_active')) {
                 $productsQuery->where('is_active', $request->boolean('is_active'));
+            }
+
+            // Filter berdasarkan is_using_stock jika disediakan
+            if ($request->has('is_using_stock')) {
+                $productsQuery->where('is_using_stock', $request->boolean('is_using_stock'));
             }
 
             // Sorting

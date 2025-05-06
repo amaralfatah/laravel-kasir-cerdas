@@ -4,14 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StockMovement extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'product_id',
-        'branch_id',
+        'shop_id',
         'quantity',
         'movement_type',
         'reference_type',
@@ -20,7 +21,9 @@ class StockMovement extends Model
         'user_id',
     ];
 
-    const UPDATED_AT = null;
+    protected $casts = [
+        'deleted_at' => 'datetime',
+    ];
 
     public function product()
     {
@@ -40,7 +43,8 @@ class StockMovement extends Model
     // Get reference model
     public function reference()
     {
-        if (!$this->reference_type || !$this->reference_id) return null;
+        if (!$this->reference_type || !$this->reference_id)
+            return null;
 
         $model = 'App\\Models\\' . str_replace(' ', '', ucwords(str_replace('_', ' ', $this->reference_type)));
 

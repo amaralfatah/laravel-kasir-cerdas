@@ -6,11 +6,13 @@ use App\Traits\HasShopRestriction;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
     use HasFactory;
     use HasShopRestriction;
+    use SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -31,6 +33,7 @@ class Product extends Model
         'images' => 'array',
         'is_using_stock' => 'boolean',
         'is_active' => 'boolean',
+        'deleted_at' => 'datetime',
     ];
 
     public function category()
@@ -83,7 +86,8 @@ class Product extends Model
         }
 
         $stock = $this->stocks()->where('shop_id', $shopId)->first();
-        if (!$stock) return false;
+        if (!$stock)
+            return false;
 
         return $stock->stock <= $stock->min_stock;
     }
