@@ -12,7 +12,7 @@ class StockOpname extends Model
     protected $table = 'stock_opname';
 
     protected $fillable = [
-        'branch_id',
+        'shop_id',
         'status',
         'notes',
         'conducted_by',

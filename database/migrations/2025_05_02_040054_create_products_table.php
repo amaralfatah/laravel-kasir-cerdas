@@ -11,7 +11,7 @@ return new class extends Migration {
             $table->id();
             $table->string('name', 255)->comment('Nama produk');
             $table->string('sku', 50)->unique()->comment('Stock Keeping Unit - Kode unik produk');
-            $table->foreignId('category_id')->constrained()->comment('Kategori produk');
+            $table->foreignId('category_id')->nullable()->constrained()->comment('Kategori produk');
             $table->decimal('purchase_price', 10, 2)->comment('Harga beli terakhir produk');
             $table->decimal('selling_price', 10, 2)->comment('Harga jual normal produk');
             $table->string('barcode', 255)->unique()->nullable()->comment('Kode barcode produk');

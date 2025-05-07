@@ -18,7 +18,7 @@ class ShopScope implements Scope
             return;
         }
 
-        // Terapkan pembatasan branch_id untuk user lain
-        $builder->where($model->getTable() . '.branch_id', $user->branch_id);
+        // Terapkan pembatasan shop_id untuk user lain
+        $builder->where($model->getTable() . '.shop_id', $user->shop_id);
     }
 }

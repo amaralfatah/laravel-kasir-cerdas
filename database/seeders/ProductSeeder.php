@@ -13,14 +13,19 @@ class ProductSeeder extends Seeder
     public function run(): void
     {
         // Create products for each subcategory
-        $categories = Category::whereNotNull('parent_id')->get();
+        // Gunakan eager loading untuk mengoptimalkan query dan memastikan parent terload
+        $categories = Category::whereNotNull('parent_id')->with('parent')->get();
+        $shops = Shop::all(); // Load semua toko di awal untuk efisiensi
 
         foreach ($categories as $category) {
             // Create 3-5 products per subcategory
             $count = rand(3, 5);
 
-            // Determine if this category contains products that use stock
-            $isUsingStock = $category->parent->name !== 'Services';
+            // Pengecekan yang lebih aman dengan null check
+            $isUsingStock = true;
+            if ($category->parent && $category->parent->name === 'Services') {
+                $isUsingStock = false;
+            }
 
             $products = Product::factory()
                 ->count($count)
@@ -31,8 +36,8 @@ class ProductSeeder extends Seeder
 
             // Create stock for each product in each shop (only for products that use stock)
             if ($isUsingStock) {
-                foreach ($products as $product) {
-                    foreach (Shop::all() as $shop) {
+                foreach ($products as $product) { // Fix: Menambahkan loop products yang hilang
+                    foreach ($shops as $shop) {
                         ProductStock::create([
                             'product_id' => $product->id,
                             'shop_id' => $shop->id,
