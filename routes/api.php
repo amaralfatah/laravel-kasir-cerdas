@@ -7,9 +7,12 @@ use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\CustomerController;
 use App\Http\Controllers\API\PaymentMethodController;
 use App\Http\Controllers\API\ProductController;
+use App\Http\Controllers\API\PurchaseOrderController;
 use App\Http\Controllers\API\ShopController;
 use App\Http\Controllers\API\ShopManagementController;
 use App\Http\Controllers\API\StockController;
+use App\Http\Controllers\API\StockOpnameController;
+use App\Http\Controllers\API\SupplierController;
 use App\Http\Controllers\API\TransactionController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\UserManagementController;
@@ -51,6 +54,23 @@ Route::middleware('auth:sanctum')->group(function () {
     // Product routes
     Route::apiResource('products', ProductController::class);
 
+    // Customer routes
+    Route::apiResource('customers', CustomerController::class);
+    Route::get('/customers/{id}/transactions', [CustomerController::class, 'transactionHistory']);
+    Route::post('/customers/{id}/adjust-points', [CustomerController::class, 'adjustPoints']);
+
+    // Payment methods routes
+    Route::apiResource('payment-methods', PaymentMethodController::class);
+    Route::post('/payment-methods/calculate-fee', [PaymentMethodController::class, 'calculateFee']);
+
+    // Transaction routes
+    Route::post('/transactions', [TransactionController::class, 'store']);
+    Route::get('/transactions', [TransactionController::class, 'index']);
+    Route::get('/transactions/{invoiceNumber}', [TransactionController::class, 'show']);
+    Route::post('/transactions/{invoiceNumber}/void', [TransactionController::class, 'void']);
+    Route::post('/transactions/{invoiceNumber}/payment', [TransactionController::class, 'addPayment']);
+    Route::get('/transactions/{invoiceNumber}/receipt', [TransactionController::class, 'receipt']);
+
     // Stock management routes
     Route::prefix('stock')->group(function () {
         Route::get('/products/{product}', [StockController::class, 'getProductStock']);
@@ -60,36 +80,21 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/low-stock', [StockController::class, 'getLowStockProducts']);
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Transaction Routes
-    |--------------------------------------------------------------------------
-    */
-    Route::prefix('transactions')->group(function () {
-        Route::get('/', [TransactionController::class, 'index']);
-        Route::post('/', [TransactionController::class, 'store']);
-        Route::get('/{invoiceNumber}', [TransactionController::class, 'show']);
-        Route::post('/{invoiceNumber}/void', [TransactionController::class, 'void']);
-        Route::post('/{invoiceNumber}/payment', [TransactionController::class, 'addPayment']);
-        Route::get('/{invoiceNumber}/receipt', [TransactionController::class, 'receipt']);
-    });
+    // Stock Opname routes - NEW
+    Route::apiResource('stock-opname', StockOpnameController::class);
+    Route::post('/stock-opname/{id}/submit', [StockOpnameController::class, 'submit']);
+    Route::post('/stock-opname/{id}/approve', [StockOpnameController::class, 'approve']);
+    Route::post('/stock-opname/{id}/cancel', [StockOpnameController::class, 'cancel']);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Customer Routes
-    |--------------------------------------------------------------------------
-    */
-    Route::apiResource('customers', CustomerController::class);
-    Route::get('customers/{id}/transactions', [CustomerController::class, 'transactionHistory']);
-    Route::post('customers/{id}/points', [CustomerController::class, 'adjustPoints']);
+    // Supplier routes - NEW
+    Route::apiResource('suppliers', SupplierController::class);
+    Route::get('/suppliers/{id}/purchase-orders', [SupplierController::class, 'purchaseOrders']);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Payment Method Routes
-    |--------------------------------------------------------------------------
-    */
-    Route::apiResource('payment-methods', PaymentMethodController::class);
-    Route::post('payment-methods/calculate-fee', [PaymentMethodController::class, 'calculateFee']);
+    // Purchase Order routes - NEW
+    Route::apiResource('purchase-orders', PurchaseOrderController::class);
+    Route::post('/purchase-orders/{id}/order', [PurchaseOrderController::class, 'order']);
+    Route::post('/purchase-orders/{id}/receive', [PurchaseOrderController::class, 'receive']);
+    Route::post('/purchase-orders/{id}/cancel', [PurchaseOrderController::class, 'cancel']);
 
     /*
     |--------------------------------------------------------------------------
@@ -118,6 +123,9 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('/shops/{id}', [ShopManagementController::class, 'update']);
             Route::delete('/shops/{id}', [ShopManagementController::class, 'destroy']);
         });
+
+        // Expense management (to be implemented)
+//        Route::apiResource('expenses', ExpenseController::class);
     });
 
     /*
