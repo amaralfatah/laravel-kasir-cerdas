@@ -9,6 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('shops', function (Blueprint $table) {
+            $table->softDeletes();
+
             $table->id();
             $table->string('name', 255);
             $table->text('address');

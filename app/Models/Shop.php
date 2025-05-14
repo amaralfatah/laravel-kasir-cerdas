@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Shop extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -54,5 +55,10 @@ class Shop extends Model
     public function stockOpnames()
     {
         return $this->hasMany(StockOpname::class);
+    }
+
+    public function shopOwners()
+    {
+        return $this->hasMany(ShopOwner::class);
     }
 }
