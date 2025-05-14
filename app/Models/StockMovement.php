@@ -50,4 +50,15 @@ class StockMovement extends Model
 
         return $model::find($this->reference_id);
     }
+
+    public function setMovementTypeAttribute($value)
+    {
+        $allowedTypes = ['purchase', 'sale', 'adjustment', 'return', 'transfer', 'void'];
+
+        if (!in_array($value, $allowedTypes)) {
+            throw new \InvalidArgumentException("Invalid movement type: {$value}");
+        }
+
+        $this->attributes['movement_type'] = $value;
+    }
 }

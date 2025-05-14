@@ -21,7 +21,7 @@ return new class extends Migration {
             $table->foreignId('product_id')->constrained()->comment('Referensi ke produk yang stoknya berubah');
             $table->foreignId('shop_id')->constrained()->comment('Toko tempat pergerakan stok terjadi');
             $table->integer('quantity')->comment('Positif untuk penambahan stok, negatif untuk pengurangan stok');
-            $table->enum('movement_type', ['purchase', 'sale', 'adjustment', 'return', 'transfer'])->comment('Tipe pergerakan stok');
+            $table->enum('movement_type', ['purchase', 'sale', 'adjustment', 'return', 'transfer', 'void'])->comment('Tipe pergerakan stok');
             $table->string('reference_type', 50)->nullable()->comment('Nama tabel terkait: "transactions", "purchase_orders", dll.');
             $table->unsignedBigInteger('reference_id')->nullable()->comment('ID pada tabel referensi');
             $table->text('notes')->nullable()->comment('Catatan tambahan terkait pergerakan stok');

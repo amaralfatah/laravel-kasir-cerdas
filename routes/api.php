@@ -4,10 +4,13 @@
 
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CategoryController;
+use App\Http\Controllers\API\CustomerController;
+use App\Http\Controllers\API\PaymentMethodController;
 use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\ShopController;
 use App\Http\Controllers\API\ShopManagementController;
 use App\Http\Controllers\API\StockController;
+use App\Http\Controllers\API\TransactionController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\UserManagementController;
 use Illuminate\Support\Facades\Route;
@@ -56,6 +59,37 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/movements/{product}', [StockController::class, 'getStockMovements']);
         Route::get('/low-stock', [StockController::class, 'getLowStockProducts']);
     });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Transaction Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('transactions')->group(function () {
+        Route::get('/', [TransactionController::class, 'index']);
+        Route::post('/', [TransactionController::class, 'store']);
+        Route::get('/{invoiceNumber}', [TransactionController::class, 'show']);
+        Route::post('/{invoiceNumber}/void', [TransactionController::class, 'void']);
+        Route::post('/{invoiceNumber}/payment', [TransactionController::class, 'addPayment']);
+        Route::get('/{invoiceNumber}/receipt', [TransactionController::class, 'receipt']);
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Customer Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::apiResource('customers', CustomerController::class);
+    Route::get('customers/{id}/transactions', [CustomerController::class, 'transactionHistory']);
+    Route::post('customers/{id}/points', [CustomerController::class, 'adjustPoints']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Payment Method Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::apiResource('payment-methods', PaymentMethodController::class);
+    Route::post('payment-methods/calculate-fee', [PaymentMethodController::class, 'calculateFee']);
 
     /*
     |--------------------------------------------------------------------------

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Schema;
 
 class ProductPriceRule extends Model
 {
@@ -71,5 +72,36 @@ class ProductPriceRule extends Model
             ->current()
             ->orderBy('min_quantity', 'desc') // Periksa aturan untuk jumlah terbesar terlebih dahulu
             ->first();
+    }
+
+    /**
+     * Scope untuk hanya mengambil aturan harga yang aktif
+     */
+    public function scopeActive($query)
+    {
+        // Jika ada kolom is_active, gunakan itu
+        if (Schema::hasColumn('product_price_rules', 'is_active')) {
+            return $query->where('is_active', true);
+        }
+
+        // Jika tidak ada kolom is_active, anggap semua aktif
+        return $query;
+    }
+
+    /**
+     * Scope untuk hanya mengambil aturan harga yang berlaku saat ini
+     */
+    public function scopeCurrent($query)
+    {
+        // Jika ada kolom valid_until, gunakan itu
+        if (Schema::hasColumn('product_price_rules', 'valid_until')) {
+            return $query->where(function($q) {
+                $q->whereNull('valid_until')
+                    ->orWhere('valid_until', '>=', now());
+            });
+        }
+
+        // Jika tidak ada kolom valid_until, anggap semua berlaku
+        return $query;
     }
 }
