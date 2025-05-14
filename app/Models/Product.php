@@ -24,6 +24,11 @@ class Product extends Model
         'images',
         'is_using_stock',
         'is_active',
+        'weight',
+        'unit',
+        'discount_percentage',
+        'rack_placement',
+        'information',
     ];
 
     protected $casts = [

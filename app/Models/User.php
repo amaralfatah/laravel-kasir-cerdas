@@ -40,7 +40,7 @@ class User extends Authenticatable
             return null;
         }
 
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Shop::class);
     }
 
     public function transactions()
@@ -78,14 +78,15 @@ class User extends Authenticatable
         return $this->hasMany(StockOpname::class, 'approved_by');
     }
 
-    public function activityLogs()
-    {
-        return $this->hasMany(ActivityLog::class);
-    }
 
     public function systemSettings()
     {
         return $this->hasMany(SystemSetting::class, 'updated_by');
+    }
+
+    public function ownedShops()
+    {
+        return $this->hasMany(ShopOwner::class);
     }
 
     public function isSuperAdmin()
