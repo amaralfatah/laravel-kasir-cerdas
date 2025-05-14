@@ -1,5 +1,7 @@
 <?php
 
+// Update CategoryController.php to add missing methods
+
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
@@ -118,6 +120,120 @@ class CategoryController extends Controller
             return ApiResponse::success($category, 'Category created successfully', 201);
         } catch (\Exception $e) {
             return ApiResponse::error('Failed to create category: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Display the specified category.
+     *
+     * @param  Category  $category
+     * @param  Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function show(Category $category, Request $request)
+    {
+        try {
+            // Load relationships based on request parameters
+            $relations = [];
+
+            if ($request->has('with_children') && $request->boolean('with_children')) {
+                $relations[] = 'children';
+            }
+
+            if ($request->has('with_parent') && $request->boolean('with_parent')) {
+                $relations[] = 'parent';
+            }
+
+            if ($request->has('with_products') && $request->boolean('with_products')) {
+                $relations[] = 'products';
+            } elseif ($request->has('with_products_count') && $request->boolean('with_products_count')) {
+                $category->loadCount('products');
+            }
+
+            // Load selected relationships
+            if (!empty($relations)) {
+                $category->load($relations);
+            }
+
+            return ApiResponse::success($category, 'Category retrieved successfully');
+        } catch (\Exception $e) {
+            return ApiResponse::error('Failed to retrieve category: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Update the specified category.
+     *
+     * @param  Request  $request
+     * @param  Category  $category
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function update(Request $request, Category $category)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'name' => 'string|max:255',
+                'parent_id' => 'nullable|exists:categories,id',
+                'is_active' => 'boolean',
+            ]);
+
+            if ($validator->fails()) {
+                return ApiResponse::error('Validation failed', 422, $validator->errors());
+            }
+
+            // Prevent setting own ID as parent
+            if ($request->has('parent_id') && $request->parent_id == $category->id) {
+                return ApiResponse::error('A category cannot be its own parent', 422);
+            }
+
+            // Prevent circular reference
+            if ($request->has('parent_id') && $request->parent_id) {
+                // Check if the new parent is not one of the descendants
+                $descendantIds = $category->descendants()->pluck('id')->toArray();
+                if (in_array($request->parent_id, $descendantIds)) {
+                    return ApiResponse::error('Circular reference detected. Cannot set parent to one of its descendants', 422);
+                }
+            }
+
+            // Update category
+            $category->update($request->only(['name', 'parent_id', 'is_active']));
+
+            // Load relationships for response
+            if ($category->parent_id) {
+                $category->load('parent');
+            }
+
+            return ApiResponse::success($category, 'Category updated successfully');
+        } catch (\Exception $e) {
+            return ApiResponse::error('Failed to update category: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Remove the specified category.
+     *
+     * @param  Category  $category
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function destroy(Category $category)
+    {
+        try {
+            // Check if category has children
+            if ($category->children()->count() > 0) {
+                return ApiResponse::error('Cannot delete category with child categories. Please move or delete children first.', 422);
+            }
+
+            // Check if category has products
+            if ($category->products()->count() > 0) {
+                return ApiResponse::error('Cannot delete category with products. Please move or delete products first.', 422);
+            }
+
+            // Delete the category
+            $category->delete();
+
+            return ApiResponse::success(null, 'Category deleted successfully');
+        } catch (\Exception $e) {
+            return ApiResponse::error('Failed to delete category: ' . $e->getMessage(), 500);
         }
     }
 }
